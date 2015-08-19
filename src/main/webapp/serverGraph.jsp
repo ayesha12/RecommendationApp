@@ -6,6 +6,10 @@
 <%@ page import="java.io.IOException" %>
 <%@ page import="com.tinkerpop.blueprints.Vertex" %>
 <%@ page import="com.tinkerpop.blueprints.Edge" %>
+<%@ page import="com.tinkerpop.blueprints.*"%>
+<%@ page import="javax.script.ScriptException"%>
+<%@ page import="java.util.ArrayList"%>
+<%@ page import="java.util.List"%>
 <%--
   Created by IntelliJ IDEA.
   User: ayeshadastagiri
@@ -21,17 +25,83 @@
     JSONParser parser = new JSONParser();
 
     System.out.println("Creating graph...");
-    Graph usergrid = GraphFactory.open("/Users/ayeshadastagiri/blueprints-web-example/src/main/resources/usergrid.properties");
+    Graph usergrid = GraphFactory.open("/Users/nishitarao/dev/RecommendationApp/src/main/resources/usergrid.properties");
     System.out.println("Graph Created!");
-    System.out.println(pName);
-    System.out.println(rName);
 
     if (pName != null && rName != null) {
         Vertex v1 = usergrid.addVertex("person/" + pName);
         Vertex v2 = usergrid.addVertex("restaurant/" + rName);
-        Edge e1 = usergrid.addEdge(null, v1, v2, "Likes");
+        Edge e1 = usergrid.addEdge(null, v1, v2, "Visits");
         System.out.println("Inside If !! ");
     }
+
+    Vertex person1,person2,person3,person4,person5,person6,restaurant1,restaurant2,restaurant3,restaurant4,restaurant5,restaurant6;
+    Edge link1,link2,link3,link4,link5,link6;
+
+    //Creates a graph with 6 people and 6 restaurants, and creates a few edges
+
+        person1 = usergrid.addVertex("person/Anne");
+        person2 = usergrid.addVertex("person/Betty");
+        person3 = usergrid.addVertex("person/Claire");
+        person4 = usergrid.addVertex("person/Dave");
+        person5 = usergrid.addVertex("person/Emma");
+        person6 = usergrid.addVertex("person/Famida");
+        restaurant1 = usergrid.addVertex("restaurant/Amici");
+        restaurant2 = usergrid.addVertex("restaurant/BurgerKing");
+        restaurant3 = usergrid.addVertex("restaurant/CheeseCakeFactory");
+        restaurant4 = usergrid.addVertex("restaurant/DelhiChaat");
+        restaurant5 = usergrid.addVertex("restaurant/EggFactory");
+        restaurant6 = usergrid.addVertex("restaurant/FalafelStop");
+
+        link1 = usergrid.addEdge(null, person1, restaurant1, "Visits");
+        link1 = usergrid.addEdge(null, person1, restaurant2, "Visits");
+        link2 = usergrid.addEdge(null, person4, restaurant1, "Visits");
+        link3 = usergrid.addEdge(null, person6, restaurant2, "Visits");
+        link4 = usergrid.addEdge(null, person2, person1, "Follows");
+        link5 = usergrid.addEdge(null, person3, person2, "Follows");
+        link6 = usergrid.addEdge(null, person1, person6, "Follows");
+
+    //Suggestions of whom to follow are given to the 'namePerson'
+    // It depends on 1) People who visit the same restaurant as him/her 2) People who they follow follow someone else
+
+    List<String> AlreadyFollowing = new ArrayList<String>();
+    List<String> AlreadyVisited = new ArrayList<String>();
+
+    for (Vertex nameFollowed: usergrid.getVertex("person/"+pName).getVertices(Direction.OUT, "Follows")) {
+    AlreadyFollowing.add(nameFollowed.getId().toString());
+    }
+
+    System.out.println("Already following"+AlreadyFollowing);
+
+    for(String nameFollowed: AlreadyFollowing){
+    Iterable<Vertex> WhomAllToFollow = usergrid.getVertex(nameFollowed).getVertices(Direction.OUT,"Follows");
+    for (Vertex WhoToFollow: WhomAllToFollow){
+    String WhoToFollow_Id = WhoToFollow.getId().toString();
+    if (!AlreadyFollowing.contains(WhoToFollow_Id)){
+    System.out.println("Recommended to follow:"+WhoToFollow_Id);
+    usergrid.addEdge(null,usergrid.getVertex("person/"+pName),usergrid.getVertex(WhoToFollow_Id),"RecommendedToFollow");
+    }
+    }
+    }
+
+    for (Vertex nameFollowed: usergrid.getVertex("person/"+pName).getVertices(Direction.OUT, "Visits")) {
+    AlreadyVisited.add(nameFollowed.getId().toString());
+    }
+
+    System.out.println("Already visited"+AlreadyVisited);
+
+    for(String nameFollowed: AlreadyFollowing){
+    Iterable<Vertex> WhomAllToVisit = usergrid.getVertex(nameFollowed).getVertices(Direction.OUT,"Visits");
+    for (Vertex WhoToVisit: WhomAllToVisit){
+    String WhoToVisit_Id = WhoToVisit.getId().toString();
+    if (!AlreadyVisited.contains(WhoToVisit_Id)){
+    System.out.println("Recommended to follow:"+WhoToVisit_Id);
+    usergrid.addEdge(null,usergrid.getVertex("person/"+pName),usergrid.getVertex(WhoToVisit_Id),"RecommendedToVisit");
+    }
+    }
+    }
+
+
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ;
         try {
@@ -93,8 +163,12 @@
                     edge.put("group", 0);
                 } else if (edge.get("_label").toString().toLowerCase().equals("follows")) {
                     edge.put("group", 1);
-                } else {
+                } else if (edge.get("_label").toString().toLowerCase().equals("recommendedtofollow")) {
                     edge.put("group", 2);
+                }  else if (edge.get("_label").toString().toLowerCase().equals("recommendedtovisit")) {
+                    edge.put("group", 3);
+                }   else {
+                    edge.put("group", 4);
                 }
             }
 
