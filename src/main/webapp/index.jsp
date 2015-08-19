@@ -110,11 +110,18 @@
 
 
 <script>
-
+    var width = 1500,
+            height = 1000;
+    var nodeFocous = false;
+    var color = d3.scale.category20();
+    var force = d3.layout.force()
+            .charge(-120)
+            .linkDistance(30)
+            .size([width, height]);
 
 //    var personName = document.getElementById("personName");
 //    var restaurantName = document.getElementById("restaurantName");
-
+var jsonResponse = null;
     $(document).ready(function() {
         $('#submit').click(function ()
         {
@@ -123,7 +130,9 @@
                 url: "serverGraph.jsp", //this is my servlet
                 data: "pName=" +$('#personName').val()+"&rName="+$('#restaurantName').val(),
                 success: function(msg){
-                    alert(JSON.stringify(msg));
+                    jsonResponse = msg;
+                   // alert(JSON.stringify(msg));
+//                    fillDiv(jsonResponse);
                 }
             });
         });
@@ -131,15 +140,74 @@
     });
 
 
-    var width = 1500,
-            height = 1000;
-    var nodeFocous = false;
-    var color = d3.scale.category20();
 
-    var force = d3.layout.force()
-            .charge(-120)
-            .linkDistance(30)
-            .size([width, height]);
+    var jsonResponse1 ='{"nodes": [{"name": "Myriel","title" : "Developer","age" : 30,"City" : "LosAngeles","group": 1},{"name": "Napoleon","title" : "Developer","age" : 20,"City" : "San Jose","group": 1}],"links": [{"source": 1,"target": 0,"value": 1}]}';
+
+    d3.json(jsonResponse1,function(error , graph){
+
+        graph = JSON.parse(jsonResponse1);
+
+
+
+        force
+                .nodes(graph.nodes)
+                .links(graph.links)
+                .start();
+
+        var link = vis.selectAll(".link")
+                .data(graph.links)
+                .enter().append("line")
+                .attr("class", "link")
+                .style("stroke-width", function (d) {
+                    return Math.sqrt(d.value);
+                })
+                .style("fill", "grey")
+                .style("opacity", .25);
+
+        var node = vis.selectAll(".node")
+                .data(graph.nodes)
+                .enter().append("circle")
+                .attr("class", "node")
+                .attr("r", 5)
+                .style("opacity", 1)
+                .style("fill", function (d) {
+                    return color(d.group);
+                })
+                .style("stroke", "black")
+                .style("stroke-width", "1px")
+                .style("stroke-opacity", 1)
+                .on("mouseover", nodeOver)
+                .on("mouseout", nodeOut)
+                .on("click", nodeClick)
+                .call(force.drag);
+
+        node.append("title")
+                .text(function (d) {
+                    return d.name;
+                });
+
+        force.on("tick", function () {
+            link.attr("x1", function (d) {
+                return d.source.x;
+            })
+                    .attr("y1", function (d) {
+                        return d.source.y;
+                    })
+                    .attr("x2", function (d) {
+                        return d.target.x;
+                    })
+                    .attr("y2", function (d) {
+                        return d.target.y;
+                    });
+
+            node.attr("cx", function (d) {
+                return d.x;
+            })
+                    .attr("cy", function (d) {
+                        return d.y;
+                    });
+        });
+    });
 
     var vis = d3.select("body").append("svg:svg")
             .attr("width", width)
@@ -258,72 +326,7 @@
     }
 
 
-    d3.json("test.json", function (error, graph) {
-        if (error) {
-            throw error;
-        }
 
-        force
-                .nodes(graph.nodes)
-                .links(graph.links)
-                .start();
-
-        var link = vis.selectAll(".link")
-                .data(graph.links)
-                .enter().append("line")
-                .attr("class", "link")
-                .style("stroke-width", function (d) {
-                    return Math.sqrt(d.value);
-                })
-                .style("fill", "grey")
-                .style("opacity", .25);
-//                .style("stroke-width", 1);
-
-
-        var node = vis.selectAll(".node")
-                .data(graph.nodes)
-                .enter().append("circle")
-                .attr("class", "node")
-                .attr("r", 5)
-                .style("opacity", 1)
-                .style("fill", function (d) {
-                    return color(d.group);
-                })
-                .style("stroke", "black")
-                .style("stroke-width", "1px")
-                .style("stroke-opacity", 1)
-                .on("mouseover", nodeOver)
-                .on("mouseout", nodeOut)
-                .on("click", nodeClick)
-                .call(force.drag);
-
-        node.append("title")
-                .text(function (d) {
-                    return d.name;
-                });
-
-        force.on("tick", function () {
-            link.attr("x1", function (d) {
-                return d.source.x;
-            })
-                    .attr("y1", function (d) {
-                        return d.source.y;
-                    })
-                    .attr("x2", function (d) {
-                        return d.target.x;
-                    })
-                    .attr("y2", function (d) {
-                        return d.target.y;
-                    });
-
-            node.attr("cx", function (d) {
-                return d.x;
-            })
-                    .attr("cy", function (d) {
-                        return d.y;
-                    });
-        });
-    });
 
 </script>
 </body>
