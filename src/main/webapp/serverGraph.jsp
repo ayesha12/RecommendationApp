@@ -10,22 +10,25 @@
 <%@ page import="javax.script.ScriptException"%>
 <%@ page import="java.util.ArrayList"%>
 <%@ page import="java.util.List"%>
-<%--
-  Created by IntelliJ IDEA.
-  User: ayeshadastagiri
-  Date: 8/18/15
-  Time: 8:55 AM
-  To change this template use File | Settings | File Templates.
---%>
+        <%@ page import="java.util.HashMap" %>
+        <%--
+          Created by IntelliJ IDEA.
+          User: ayeshadastagiri
+          Date: 8/18/15
+          Time: 8:55 AM
+          To change this template use File | Settings | File Templates.
+        --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <% String pName = request.getParameter("pName");
     String rName = request.getParameter("rName");
     String SLASH = "/";
     String toReturn = null;
     JSONParser parser = new JSONParser();
+    int count = 0 ;
 
+    HashMap<String,Integer> vertexIdMaps = new HashMap<String,Integer>();
     System.out.println("Creating graph...");
-    Graph usergrid = GraphFactory.open("/Users/nishitarao/dev/RecommendationApp/src/main/resources/usergrid.properties");
+    Graph usergrid = GraphFactory.open("/Users/ayeshadastagiri/blueprints-web-example/src/main/resources/usergrid.properties");
     System.out.println("Graph Created!");
 
     if (pName != null && rName != null) {
@@ -126,9 +129,15 @@
             System.out.println(json_object);
 //                fileWrite = new FileWriter("blueprints-usergrid-graph/src/main/resources/test2.json");
 
+
             JSONArray vertices = (JSONArray) json_object.get("vertices");
             for (int i = 0; i < vertices.size(); i++) {
                 JSONObject vertex = (JSONObject) vertices.get(i);
+
+                if(!vertexIdMaps.containsKey(vertex.get("_id").toString())){
+                    vertexIdMaps.put(vertex.get("_id").toString(),count);
+                    count++;
+                }
                 vertex.remove("metadata");
                 vertex.remove("id");
                 if (vertex.get("connecting") != null) {
@@ -159,6 +168,10 @@
                 edge.remove("_id");
                 edge.remove("label");
                 edge.remove("_type");
+                int sourceId = vertexIdMaps.get(edge.get("_outV"));
+                int targetId = vertexIdMaps.get(edge.get("_inV"));
+                edge.put("source",sourceId);
+                edge.put("target",targetId);
                 if (edge.get("_label").toString().toLowerCase().equals("visits")) {
                     edge.put("group", 0);
                 } else if (edge.get("_label").toString().toLowerCase().equals("follows")) {
@@ -177,11 +190,13 @@
             finalObject.put("links", edges);
             toReturn = finalObject.toJSONString().replace("\\/", "/");
             System.out.println(finalObject);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
 
     response.setContentType("application/json");
     JSONObject returnGraph = (JSONObject) parser.parse(toReturn);
+    System.out.println("json created is : "+String.valueOf(returnGraph));
     response.getWriter().write(String.valueOf(returnGraph));
 %>

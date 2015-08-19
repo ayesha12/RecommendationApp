@@ -131,82 +131,12 @@ var jsonResponse = null;
                 data: "pName=" +$('#personName').val()+"&rName="+$('#restaurantName').val(),
                 success: function(msg){
                     jsonResponse = msg;
-                   // alert(JSON.stringify(msg));
+                    // alert(JSON.stringify(msg));
 //                    fillDiv(jsonResponse);
                 }
             });
         });
 
-    });
-
-
-
-    var jsonResponse1 ='{"nodes": [{"name": "Myriel","title" : "Developer","age" : 30,"City" : "LosAngeles","group": 1},{"name": "Napoleon","title" : "Developer","age" : 20,"City" : "San Jose","group": 1}],"links": [{"source": 1,"target": 0,"value": 1}]}';
-
-    d3.json(jsonResponse1,function(error , graph){
-
-        graph = JSON.parse(jsonResponse1);
-
-
-
-        force
-                .nodes(graph.nodes)
-                .links(graph.links)
-                .start();
-
-        var link = vis.selectAll(".link")
-                .data(graph.links)
-                .enter().append("line")
-                .attr("class", "link")
-                .style("stroke-width", function (d) {
-                    return Math.sqrt(d.value);
-                })
-                .style("fill", "grey")
-                .style("opacity", .25);
-
-        var node = vis.selectAll(".node")
-                .data(graph.nodes)
-                .enter().append("circle")
-                .attr("class", "node")
-                .attr("r", 5)
-                .style("opacity", 1)
-                .style("fill", function (d) {
-                    return color(d.group);
-                })
-                .style("stroke", "black")
-                .style("stroke-width", "1px")
-                .style("stroke-opacity", 1)
-                .on("mouseover", nodeOver)
-                .on("mouseout", nodeOut)
-                .on("click", nodeClick)
-                .call(force.drag);
-
-        node.append("title")
-                .text(function (d) {
-                    return d.name;
-                });
-
-        force.on("tick", function () {
-            link.attr("x1", function (d) {
-                return d.source.x;
-            })
-                    .attr("y1", function (d) {
-                        return d.source.y;
-                    })
-                    .attr("x2", function (d) {
-                        return d.target.x;
-                    })
-                    .attr("y2", function (d) {
-                        return d.target.y;
-                    });
-
-            node.attr("cx", function (d) {
-                return d.x;
-            })
-                    .attr("cy", function (d) {
-                        return d.y;
-                    });
-        });
     });
 
     var vis = d3.select("body").append("svg:svg")
@@ -227,8 +157,7 @@ var jsonResponse = null;
                 "translate(" + d3.event.translate + ")"
                 + " scale(" + d3.event.scale + ")");
     }
-
-    function nodeOut() {
+    function nodeOut(){
 //
 //            if (nodeFocus) {
 //                return;
@@ -237,23 +166,17 @@ var jsonResponse = null;
         d3.selectAll(".hoverLabel")
                 .attr("r", 5)
                 .attr("class", "node")
-                .style("opacity", 1)
+                .style("opacity",1)
                 .style("stroke", "black")
                 .style("stroke-width", "1px")
-                .style("fill", function (d) {
-                    return color(d.group);
-                });
-        d3.selectAll(".link").style("opacity", .25).style("stroke-width", function (d) {
-            return Math.sqrt(d.value);
-        }).style("fill", "grey");
+                .style("fill", function(d) { return color(d.group); });
+        d3.selectAll(".link").style("opacity",.25).style("stroke-width", function(d) { return Math.sqrt(d.value); }).style("fill","grey");
     }
 
-    function findNeighbors(d, i) {
+    function findNeighbors(d,i) {
         neighborArray = [d];
         var linkArray = [];
-        var linksArray = d3.selectAll(".link").filter(function (p) {
-            return p.source == d || p.target == d
-        }).each(function (p) {
+        var linksArray = d3.selectAll(".link").filter(function(p) {return p.source == d || p.target == d}).each(function(p) {
             neighborArray.indexOf(p.source) == -1 ? neighborArray.push(p.source) : null;
             neighborArray.indexOf(p.target) == -1 ? neighborArray.push(p.target) : null;
             linkArray.push(p);
@@ -262,7 +185,7 @@ var jsonResponse = null;
         return {nodes: neighborArray, links: linkArray};
     }
 
-    function highlightNeighbors(d, i) {
+    function highlightNeighbors(d,i) {
         var nodeNeighbors = findNeighbors(d, i);
 //            alert(d3.selectAll(".node"));
         d3.selectAll(".node").each(function (p) {
@@ -286,12 +209,12 @@ var jsonResponse = null;
     }
 
 
-    function nodeClick(d, i) {
+    function nodeClick(d,i) {
         nodeFocus = false;
         nodeOut();
 //            nodeOver(d,i,this);
         nodeFocus = true;
-        var newContent = "<p>Name : " + d.name + "</p><p>Title : " + d.title + "</p><p>Age : " + d.age + "</p><p>City : " + d.City + "</p>";
+//        var newContent = "<p>Name : " + d.name + "</p><p>Title : " + d.title + "</p><p>Age : " + d.age + "</p><p>City : " + d.City + "</p>" ;
 //            newContent += "<p>Attributes: </p><p><ul>";
 //            for (x in gD3.nodeAttributes()) {
 //                newContent += "<li>" + gD3.nodeAttributes()[x] + ": " + d.properties[gD3.nodeAttributes()[x]]+ "</li>";
@@ -308,25 +231,73 @@ var jsonResponse = null;
         d3.select("#modal").style("display", "block").select("#content").html(newContent);
     }
 
-    function nodeOver(d, i, e) {
+    function nodeOver(d,i,e){
         el = this;
         d3.select(el)
                 .attr("class", "hoverLabel")
                 .style("stroke", "blue")
                 .style("stroke-width", "2px")
                 .style("opacity", .9)
-                .style("fill", function (d) {
-                    return color(d.group);
-                });
-        highlightNeighbors(d, i);
-        el.text(function (d) {
-            return d.name;
-        });
+                .style("fill",function(d) { return color(d.group); });
+        highlightNeighbors(d,i);
+        el.text(function(d) { return d.name; });
 
     }
 
 
+    d3.json(jsonResponse,function(error , graph){
 
+        if(jsonResponse == null) {
+            alert("hi");
+            jsonResponse = '{"nodes":[{"created":1439966812074,"name":"Nishita","modified":1439967048010,"_ugBlueprintsId":"person\/Nishita","_ugName":"Nishita","_id":"person\/Nishita","group":1},{"created":1439966817163,"name":"Anne","modified":1439967075905,"_ugBlueprintsId":"person\/Anne","_ugName":"Anne","_id":"person\/Anne","group":1},{"created":1439966817602,"name":"Betty","modified":1439967073964,"_ugBlueprintsId":"person\/Betty","_ugName":"Betty","_id":"person\/Betty","group":1},{"created":1439966818089,"name":"Claire","modified":1439967072236,"_ugBlueprintsId":"person\/Claire","_ugName":"Claire","_id":"person\/Claire","group":1},{"created":1439966818504,"name":"Dave","modified":1439967061191,"_ugBlueprintsId":"person\/Dave","_ugName":"Dave","_id":"person\/Dave","group":1},{"created":1439966818952,"name":"Emma","modified":1439966818952,"_ugBlueprintsId":"person\/Emma","_ugName":"Emma","_id":"person\/Emma","group":1},{"created":1439966819530,"name":"Famida","modified":1439967077699,"_ugBlueprintsId":"person\/Famida","_ugName":"Famida","_id":"person\/Famida","group":1},{"created":1439966812594,"name":"CPK","modified":1439967050032,"_ugBlueprintsId":"restaurant\/CPK","_ugName":"CPK","_id":"restaurant\/CPK","group":2},{"created":1439966819930,"name":"Amici","modified":1439967063036,"_ugBlueprintsId":"restaurant\/Amici","_ugName":"Amici","_id":"restaurant\/Amici","group":2},{"created":1439966820371,"name":"BurgerKing","modified":1439967066712,"_ugBlueprintsId":"restaurant\/BurgerKing","_ugName":"BurgerKing","_id":"restaurant\/BurgerKing","group":2},{"created":1439966821096,"name":"CheeseCakeFactory","modified":1439966821096,"_ugBlueprintsId":"restaurant\/CheeseCakeFactory","_ugName":"CheeseCakeFactory","_id":"restaurant\/CheeseCakeFactory","group":2},{"created":1439966821516,"name":"DelhiChaat","modified":1439966821516,"_ugBlueprintsId":"restaurant\/DelhiChaat","_ugName":"DelhiChaat","_id":"restaurant\/DelhiChaat","group":2},{"created":1439966821966,"name":"EggFactory","modified":1439966821966,"_ugBlueprintsId":"restaurant\/EggFactory","_ugName":"EggFactory","_id":"restaurant\/EggFactory","group":2},{"created":1439966822451,"name":"FalafelStop","modified":1439966822451,"_ugBlueprintsId":"restaurant\/FalafelStop","_ugName":"FalafelStop","_id":"restaurant\/FalafelStop","group":2}],"links":[{"connectionid":"person\/Nishita\/visits\/restaurant\/CPK","_outV":"person\/Nishita","source":0,"_inV":"restaurant\/CPK","_label":"visits","target":7,"group":0},{"connectionid":"person\/Anne\/follows\/person\/Famida","_outV":"person\/Anne","source":1,"_inV":"person\/Famida","_label":"follows","target":6,"group":1},{"connectionid":"person\/Anne\/visits\/restaurant\/Amici","_outV":"person\/Anne","source":1,"_inV":"restaurant\/Amici","_label":"visits","target":8,"group":0},{"connectionid":"person\/Anne\/visits\/restaurant\/BurgerKing","_outV":"person\/Anne","source":1,"_inV":"restaurant\/BurgerKing","_label":"visits","target":9,"group":0},{"connectionid":"person\/Betty\/follows\/person\/Anne","_outV":"person\/Betty","source":2,"_inV":"person\/Anne","_label":"follows","target":1,"group":1},{"connectionid":"person\/Claire\/follows\/person\/Betty","_outV":"person\/Claire","source":3,"_inV":"person\/Betty","_label":"follows","target":2,"group":1},{"connectionid":"person\/Dave\/visits\/restaurant\/Amici","_outV":"person\/Dave","source":4,"_inV":"restaurant\/Amici","_label":"visits","target":8,"group":0},{"connectionid":"person\/Famida\/visits\/restaurant\/BurgerKing","_outV":"person\/Famida","source":6,"_inV":"restaurant\/BurgerKing","_label":"visits","target":9,"group":0}]}';
+        }
+        graph = JSON.parse(jsonResponse);
+        force
+                .nodes(graph.nodes)
+                .links(graph.links)
+                .start();
+
+
+        var link = vis.selectAll(".link")
+                .data(graph.links)
+                .enter().append("line")
+                .attr("class", "link")
+                .style("stroke-width", function(d) { return Math.sqrt(d.group); })
+                .style("fill","grey")
+                .style("opacity",.25);
+//                .style("stroke-width", 1);
+
+
+        var node = vis.selectAll(".node")
+                .data(graph.nodes)
+                .enter().append("circle")
+                .attr("class", "node")
+                .attr("r", 5)
+                .style("opacity",1)
+                .style("fill", function(d) { return color(d.group); })
+                .style("stroke", "black")
+                .style("stroke-width", "1px")
+                .style("stroke-opacity", 1)
+                .on("mouseover", nodeOver)
+                .on("mouseout", nodeOut)
+                .on("click",nodeClick)
+                .call(force.drag);
+
+        node.append("title")
+                .text(function(d) { return d.name; });
+
+// Compute the distinct nodes from the links.
+        force.on("tick", function() {
+            link.attr("x1", function(d) { return d.source.x; })
+                    .attr("y1", function(d) { return d.source.y; })
+                    .attr("x2", function(d) { return d.target.x; })
+                    .attr("y2", function(d) { return d.target.y; });
+
+            node.attr("cx", function(d) { return d.x; })
+                    .attr("cy", function(d) { return d.y; });
+        });
+
+    });
 
 </script>
 </body>
