@@ -43,7 +43,7 @@
 
     //Creates a graph with 6 people and 6 restaurants, and creates a few edges
 
-        person1 = usergrid.addVertex("person/Anne");
+      /*  person1 = usergrid.addVertex("person/Anne");
         person2 = usergrid.addVertex("person/Betty");
         person3 = usergrid.addVertex("person/Claire");
         person4 = usergrid.addVertex("person/Dave");
@@ -62,7 +62,7 @@
         link3 = usergrid.addEdge(null, person6, restaurant2, "Visits");
         link4 = usergrid.addEdge(null, person2, person1, "Follows");
         link5 = usergrid.addEdge(null, person3, person2, "Follows");
-        link6 = usergrid.addEdge(null, person1, person6, "Follows");
+        link6 = usergrid.addEdge(null, person1, person6, "Follows");*/
 
     //Suggestions of whom to follow are given to the 'namePerson'
     // It depends on 1) People who visit the same restaurant as him/her 2) People who they follow follow someone else
@@ -103,7 +103,15 @@
     }
     }
     }
-
+    Iterable<Vertex> RestaurantsVisited = usergrid.getVertex("person/"+pName).getVertices(Direction.OUT,"Visits");
+    for (Vertex restaurant_visited: RestaurantsVisited){
+        Iterable<Vertex> WhoFollowsThisRestaurant = usergrid.getVertex(restaurant_visited.getId().toString()).getVertices(Direction.IN,"Visits");
+        for (Vertex WhoToFollow:WhoFollowsThisRestaurant){
+            if(!AlreadyFollowing.contains(WhoToFollow.getId().toString())&&!(WhoToFollow.getId().toString()).equals("person/"+pName)){
+                usergrid.addEdge(null,usergrid.getVertex("person/"+pName),usergrid.getVertex(WhoToFollow.getId().toString()),"RecommendedToFollow");
+            }
+        }
+    }
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ;
